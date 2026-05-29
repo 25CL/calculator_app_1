@@ -4,7 +4,7 @@ import random
 import pandas as pd
 import plotly.express as px
 
-# 1. 다국어 텍스트 딕셔너리 (계산기 및 시뮬레이터 통합)
+# 1. 다국어 텍스트 딕셔너리
 TEXT = {
     "English": {
         "menu_title": "Navigation",
@@ -114,7 +114,6 @@ def probability_app(t):
     st.title(t["prob_title"])
     st.write(t["prob_desc"])
 
-    # 입력 폼
     col1, col2 = st.columns(2)
     with col1:
         sim_type = st.radio(t["sim_type"], [t["sim_coin"], t["sim_dice"]])
@@ -122,47 +121,39 @@ def probability_app(t):
         trials = st.number_input(t["trials"], min_value=1, max_value=100000, value=100, step=10)
 
     if st.button(t["run_sim"], type="primary"):
-        # 시뮬레이션 설정
         if sim_type == t["sim_coin"]:
             options = [t["coin_heads"], t["coin_tails"]]
         else:
             options = ["1", "2", "3", "4", "5", "6"]
 
-        # 난수 생성 (데이터 처리 최적화를 위해 random.choices 사용)
         results = random.choices(options, k=trials)
         
-        # 결과 집계 (pandas 데이터프레임 활용)
         df = pd.DataFrame(results, columns=[t["xaxis"]])
         counts = df[t["xaxis"]].value_counts().reindex(options, fill_value=0).reset_index()
         counts.columns = [t["xaxis"], t["yaxis"]]
 
-        # Plotly 그래프 생성
         fig = px.bar(
             counts, 
             x=t["xaxis"], 
             y=t["yaxis"], 
-            text=t["yaxis"], # 막대 위에 숫자 표시
+            text=t["yaxis"], 
             title=f"{trials:,} Trials / 시행 결과",
-            color=t["xaxis"], # 항목별로 다른 색상 적용
+            color=t["xaxis"], 
             template="plotly_white"
         )
         fig.update_traces(textposition='outside')
         
-        # 화면에 그래프 출력
         st.plotly_chart(fig, use_container_width=True)
-
 
 # --- 메인 실행 함수 ---
 def main():
     st.set_page_config(page_title="Multi-Tool App", page_icon="🛠️")
     
-    # 사이드바 언어 선택
     lang_choice = st.sidebar.radio("Language / 언어", ["한국어", "English"])
     t = TEXT[lang_choice]
 
     st.sidebar.markdown("---")
     
-    # 사이드바 앱 선택 라우팅
     st.sidebar.subheader(t["menu_title"])
     app_choice = st.sidebar.selectbox("Go to:", [t["app_calc"], t["app_prob"]])
 
